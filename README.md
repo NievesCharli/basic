@@ -1,0 +1,2 @@
+# basic
+APP AMAZON PRIME
