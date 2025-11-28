@@ -50,9 +50,9 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                     ['label'=> 'Géneros','url'=>['/genero/index']],
                     ['label'=> 'Actores','url'=>['/actor/index']],
                     ['label'=> 'Directores','url'=>['/director/index']],
-                    (!Yii::$app->user->isGuest && Yii::$app->user->identity->role != 'admin')
-                        ? ''
-                        : ['label'=> 'Usuarios','url'=>['/user/index']],
+                    (!Yii::$app->user->isGuest && Yii::$app->user->identity->role == 'admin')
+    ? ['label'=> 'Usuarios','url'=>['/user/index']]
+    : '',
                 ],
             ],
 
