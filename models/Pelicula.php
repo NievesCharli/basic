@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "pelicula".
@@ -23,7 +24,7 @@ use Yii;
  */
 class Pelicula extends \yii\db\ActiveRecord
 {
-
+    public $imageFile;
 
     /**
      * {@inheritdoc}
@@ -43,8 +44,10 @@ class Pelicula extends \yii\db\ActiveRecord
             [['anio', 'fk_iddirector'], 'integer'],
             [['duracion'], 'safe'],
             [['fk_iddirector'], 'required'],
-            [['portada', 'titulo', 'sinopsis'], 'string', 'max' => 45],
+            [[ 'titulo'], 'string', 'max' => 100],
+            [['portada', 'titulo', 'sinopsis'], 'string', 'max' => 255],
             [['fk_iddirector'], 'exist', 'skipOnError' => true, 'targetClass' => Director::class, 'targetAttribute' => ['fk_iddirector' => 'iddirector']],
+            [['imageFile'],'file','skipOnEmpty' => true,'extensions'=> 'png, jpg'],
         ];
     }
 
@@ -58,10 +61,45 @@ class Pelicula extends \yii\db\ActiveRecord
             'portada' => Yii::t('app', 'Portada'),
             'titulo' => Yii::t('app', 'Titulo'),
             'sinopsis' => Yii::t('app', 'Sinopsis'),
-            'anio' => Yii::t('app', 'Anio'),
+            'anio' => Yii::t('app', 'Año'),
             'duracion' => Yii::t('app', 'Duracion'),
-            'fk_iddirector' => Yii::t('app', 'Fk Iddirector'),
+            'fk_iddirector' => Yii::t('app', 'Director'),
         ];
+    }
+
+    public function upload(){
+        if($this->validate()){
+            if($this->isNewRecord){
+                if(!$this->save(false)){
+                    return false;
+                }
+            }
+            if($this->imageFile instanceof UploadedFile){
+            $filename = $this->idpelicula . '.' . $this->anio . '_movie_' . date('Ymd_His') . '.'. $this->imageFile->extension;
+            $path = Yii::getAlias('@webroot/portadas/') . $filename;
+
+            if($this->imageFile->saveAs($path)){
+                if($this->portada && $this->portada !== $filename){
+                    $this->deletePortada();
+                }
+                $this->portada = $filename;
+                
+            }
+        }
+        return $this->save(false);
+
+        }
+        
+        return false;
+    }
+
+    public function deletePortada(){
+        $path = Yii::getAlias('@webroot/portadas/') . $this->portada;
+        if(file_exists($path)){
+
+            unlink($path);
+        }
+
     }
 
     /**

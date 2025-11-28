@@ -1,12 +1,13 @@
 <?php
 
 namespace app\controllers;
-
+use Yii;
 use app\models\Pelicula;
 use app\models\PeliculaSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\UploadedFile;
 
 /**
  * PeliculaController implements the CRUD actions for Pelicula model.
@@ -17,19 +18,29 @@ class PeliculaController extends Controller
      * @inheritDoc
      */
     public function behaviors()
-    {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
+{
+    return array_merge(
+        parent::behaviors(),
+        [
+            'access' => [
+                'class' => \yii\filters\AccessControl::class,
+                'only' => ['create', 'update', 'delete'],
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'], // solo usuarios autenticados
                     ],
                 ],
-            ]
-        );
-    }
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['POST'],
+                ],
+            ],
+        ]
+    );
+}
 
     /**
      * Lists all Pelicula models.
@@ -68,17 +79,37 @@ class PeliculaController extends Controller
     public function actionCreate()
     {
         $model = new Pelicula();
+        $message = '';
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'idpelicula' => $model->idpelicula]);
+        if($this->request->isPost){
+            $transaction = Yii::$app->db->beginTransaction();
+            try{
+                if($model-> load($this->request->post())){
+                    $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
+                    if($model->save() && (!$model->imageFile || $model->upload())){
+                        $transaction->commit();
+                        return $this-> redirect(['view','idpelicula'=>$model->idpelicula]);
+                    }else{
+                        $message = 'Error al guardar la pelicula';
+                        $transaction->rollBack();
+                    }
+
+                }else{
+                    $message = 'Error al cargar la portada';
+                    $transaction-> rollBack();
+                }
+
+            }catch(\Exception $e){
+                $transaction->rollBack();
+                $message = 'Error al guardar la pelicula'();
             }
-        } else {
-            $model->loadDefaultValues();
+        }else{
+            $model-> loadDefaultValues();
         }
 
         return $this->render('create', [
             'model' => $model,
+            'message'=>$message,
         ]);
     }
 
@@ -92,13 +123,21 @@ class PeliculaController extends Controller
     public function actionUpdate($idpelicula)
     {
         $model = $this->findModel($idpelicula);
+        $message='';
+        if($this->request->isPost && $model->load($this->request->post())){
+            $model->imageFile = UploadedFile::getInstance($model,'imageFile');
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'idpelicula' => $model->idpelicula]);
+            if($model->save() && (!$model->imageFile || $model->upload())){
+                return $this->redirect(['view','ipelicula'=>$model->idpelicula]);
+            }else{
+               $message = 'Error al guardar la pelicula';
+            }
         }
+
 
         return $this->render('update', [
             'model' => $model,
+            'message'=>$message,
         ]);
     }
 
@@ -111,8 +150,9 @@ class PeliculaController extends Controller
      */
     public function actionDelete($idpelicula)
     {
-        $this->findModel($idpelicula)->delete();
-
+        $model = $this->findModel($idpelicula);
+        $model->deletePortada();
+        $model->delete();
         return $this->redirect(['index']);
     }
 

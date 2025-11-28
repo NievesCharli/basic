@@ -15,6 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <?php if (!Yii::$app->user->isGuest): ?>
     <p>
         <?= Html::a(Yii::t('app', 'Update'), ['update', 'idpelicula' => $model->idpelicula], ['class' => 'btn btn-primary']) ?>
         <?= Html::a(Yii::t('app', 'Delete'), ['delete', 'idpelicula' => $model->idpelicula], [
@@ -25,12 +26,19 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ]) ?>
     </p>
+    <?php endif; ?>
 
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
             'idpelicula',
-            'portada',
+            [
+                'attribute'=>'portada',
+                'format'=> 'html',
+                'value'=> function($model){
+                    return Html::img(Yii::getAlias('@web') . '/portadas/' . $model->portada,['style'=>'width: 100px']);
+                }
+            ],
             'titulo',
             'sinopsis',
             'anio',

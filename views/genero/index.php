@@ -6,6 +6,7 @@ use yii\helpers\Url;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
+
 /** @var yii\web\View $this */
 /** @var app\models\GeneroSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
@@ -17,12 +18,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
+    <!-- ❗ Botón crear solo para admin -->
+    <?php if (!Yii::$app->user->isGuest && Yii::$app->user->identity->role === 'admin'): ?>
         <?= Html::a(Yii::t('app', 'Create Genero'), ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <?php endif; ?>
 
     <?php Pjax::begin(); ?>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -33,11 +34,26 @@ $this->params['breadcrumbs'][] = $this->title;
             'idcategoria',
             'nombre',
             'descripcion',
+
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Genero $model, $key, $index, $column) {
+                'class' => ActionColumn::class,
+                'urlCreator' => function ($action, Genero $model, $key, $index) {
                     return Url::toRoute([$action, 'idcategoria' => $model->idcategoria]);
-                 }
+                },
+                'visibleButtons' => [
+                    'view' => function () {
+                        $role = Yii::$app->user->identity->role ?? null;
+                        return $role === 'user' || $role === 'admin';
+                    },
+                    'update' => function () {
+                        $role = Yii::$app->user->identity->role ?? null;
+                        return $role === 'admin';
+                    },
+                    'delete' => function () {
+                        $role = Yii::$app->user->identity->role ?? null;
+                        return $role === 'admin';
+                    },
+                ],
             ],
         ],
     ]); ?>

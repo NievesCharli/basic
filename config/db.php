@@ -2,7 +2,7 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;port=3307;dbname=amazonprime',
+    'dsn' => 'mysql:host=192.168.56.2;port=3306;dbname=amazonprime',
     'username' => 'remote_estu_ncharli',
     'password' => '1234567890',
     'charset' => 'utf8',

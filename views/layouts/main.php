@@ -9,6 +9,7 @@ use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
+$this->registerCssFile("@web/css/prime-grid.css");
 
 AppAsset::register($this);
 
@@ -26,62 +27,65 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100" style="background:#0f171e;">
 <?php $this->beginBody() ?>
 
 <header id="header">
     <?php
     NavBar::begin([
-        'brandLabel' => Yii::$app->name,
+        'brandLabel' => 'AmazonPrime',
         'brandUrl' => Yii::$app->homeUrl,
-        'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
+        'options' => ['class' => 'navbar-expand-md navbar-dark', 'style' => 'background:#0f171e; border-bottom:1px solid #1f2a33;']
     ]);
+
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav'],
+        'options' => ['class' => 'navbar-nav ms-auto'],
         'items' => [
             ['label' => 'Inicio', 'url' => ['/site/index']],
-            ['label' => 'Sobre nosotros', 'url' => ['/site/about']],
-            ['label' => 'Contáctenos', 'url' => ['/site/contact']],
-            ['label' => 'Actores', 'url' => ['/actor/index']],
-            ['label' => 'Directores', 'url' => ['/director/index']],
-            ['label' => 'Generos', 'url' => ['/genero/index']],
-            ['label' => 'Peliculas', 'url' => ['/pelicula/index']],
 
+            [
+                'label' => 'Gestionar películas',
+                'items' => [
+                    ['label'=> 'Películas','url'=>['/pelicula/index']],
+                    ['label'=> 'Géneros','url'=>['/genero/index']],
+                    ['label'=> 'Actores','url'=>['/actor/index']],
+                    ['label'=> 'Directores','url'=>['/director/index']],
+                    (!Yii::$app->user->isGuest && Yii::$app->user->identity->role != 'admin')
+                        ? ''
+                        : ['label'=> 'Usuarios','url'=>['/user/index']],
+                ],
+            ],
 
-
+            Yii::$app->user->isGuest ? '' : ['label' => 'Cambiar Password', 'url' => ['/user/change-password']],
 
             Yii::$app->user->isGuest
                 ? ['label' => 'Login', 'url' => ['/site/login']]
                 : '<li class="nav-item">'
                     . Html::beginForm(['/site/logout'])
                     . Html::submitButton(
-                        'Logout (' . Yii::$app->user->identity->username . ')',
+                        'Logout (' . Yii::$app->user->identity->apellido . ' ' . Yii::$app->user->identity->nombre . ') ' . Yii::$app->user->identity->role,
                         ['class' => 'nav-link btn btn-link logout']
                     )
                     . Html::endForm()
                     . '</li>'
         ]
     ]);
+
     NavBar::end();
     ?>
 </header>
 
+<!-- 🔥 FULL WIDTH: container-fluid sin márgenes -->
 <main id="main" class="flex-shrink-0" role="main">
-    <div class="container">
-        <?php if (!empty($this->params['breadcrumbs'])): ?>
-            <?= Breadcrumbs::widget(['links' => $this->params['breadcrumbs']]) ?>
-        <?php endif ?>
+    <div class="container-fluid" style="padding:0; margin:0;">
         <?= Alert::widget() ?>
         <?= $content ?>
     </div>
 </main>
 
-<footer id="footer" class="mt-auto py-3 bg-light">
-    <div class="container">
-        <div class="row text-muted">
-            <div class="col-md-6 text-center text-md-start">&copy; My Company <?= date('Y') ?></div>
-            <div class="col-md-6 text-center text-md-end"><?= Yii::powered() ?></div>
-        </div>
+<footer id="footer" class="mt-auto py-3" style="background:#0f171e;">
+    <div class="container-fluid text-muted text-center" style="color:#7b8a96;">
+        &copy; Prime Movies <?= date('Y') ?> - Powered by Yii2
     </div>
 </footer>
 
